@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.venv/
+data/processed/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.python-version
+main.py
