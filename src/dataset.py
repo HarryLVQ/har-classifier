@@ -34,21 +34,20 @@ class Dataset:
 
     X_train: np.ndarray
     y_train: np.ndarray
-    X_val:   np.ndarray
-    y_val:   np.ndarray
-    X_test:  np.ndarray
-    y_test:  np.ndarray
+    X_val: np.ndarray
+    y_val: np.ndarray
+    X_test: np.ndarray
+    y_test: np.ndarray
 
     def summary(self) -> None:
         """Print split sizes and per-class window counts."""
         for name, _, y in [
             ("train", self.X_train, self.y_train),
-            ("val",   self.X_val,   self.y_val),
-            ("test",  self.X_test,  self.y_test),
+            ("val", self.X_val, self.y_val),
+            ("test", self.X_test, self.y_test),
         ]:
             counts = {
-                config.LABELS[i]: int(np.sum(y == i))
-                for i in sorted(config.LABELS)
+                config.LABELS[i]: int(np.sum(y == i)) for i in sorted(config.LABELS)
             }
             print(f"{name:5s} → {len(y):4d} windows | {counts}")
 
@@ -77,14 +76,14 @@ def _split_single_session(
     Used for falling (only one session available). Contiguous blocks
     avoid leakage from overlapping windows.
     """
-    n      = len(X)
-    i_val  = int(n * train_ratio)
+    n = len(X)
+    i_val = int(n * train_ratio)
     i_test = int(n * (train_ratio + val_ratio))
 
     return (
-        (X[:i_val],        y[:i_val]),
-        (X[i_val:i_test],  y[i_val:i_test]),
-        (X[i_test:],       y[i_test:]),
+        (X[:i_val], y[:i_val]),
+        (X[i_val:i_test], y[i_val:i_test]),
+        (X[i_test:], y[i_test:]),
     )
 
 
@@ -99,12 +98,14 @@ def build_dataset(raw_dir: Path = config.RAW_DATA_DIR) -> Dataset:
     """
     rng = np.random.default_rng(config.RANDOM_SEED)
     parts: dict[str, list[tuple[np.ndarray, np.ndarray]]] = {
-        "train": [], "val": [], "test": [],
+        "train": [],
+        "val": [],
+        "test": [],
     }
 
     for label_id, name in config.LABELS.items():
         activity_dir = raw_dir / name
-        sessions     = sorted(activity_dir.glob("*_acc.csv"))
+        sessions = sorted(activity_dir.glob("*_acc.csv"))
 
         if not sessions:
             print(f"[WARN] No sessions found for '{name}', skipping.")
@@ -137,13 +138,13 @@ def build_dataset(raw_dir: Path = config.RAW_DATA_DIR) -> Dataset:
                 parts[split].append((X, y))
 
     def stack_and_shuffle(key: str) -> tuple[np.ndarray, np.ndarray]:
-        Xs  = np.concatenate([x for x, _ in parts[key]])
-        ys  = np.concatenate([y for _, y in parts[key]])
+        Xs = np.concatenate([x for x, _ in parts[key]])
+        ys = np.concatenate([y for _, y in parts[key]])
         idx = rng.permutation(len(Xs))
         return Xs[idx], ys[idx]
 
     X_train, y_train = stack_and_shuffle("train")
-    X_val,   y_val   = stack_and_shuffle("val")
-    X_test,  y_test  = stack_and_shuffle("test")
+    X_val, y_val = stack_and_shuffle("val")
+    X_test, y_test = stack_and_shuffle("test")
 
     return Dataset(X_train, y_train, X_val, y_val, X_test, y_test)

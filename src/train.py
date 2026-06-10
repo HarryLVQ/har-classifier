@@ -46,7 +46,7 @@ def main() -> None:
 
     config.MODELS_DIR.mkdir(parents=True, exist_ok=True)
     joblib.dump(model, config.MODELS_DIR / "model.joblib")
-    joblib.dump(data,  config.MODELS_DIR / "dataset.joblib")
+    joblib.dump(data, config.MODELS_DIR / "dataset.joblib")
     print(f"Model saved → {config.MODELS_DIR / 'model.joblib'}")
 
 

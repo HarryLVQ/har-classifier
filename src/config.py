@@ -24,8 +24,12 @@ WINDOW_STEP: int = int(WINDOW_SIZE * (1 - WINDOW_OVERLAP))  # 100 samples
 
 # Channel order must stay consistent across the whole pipeline
 SENSOR_CHANNELS: tuple[str, ...] = (
-    "acc_x", "acc_y", "acc_z",
-    "gyr_x", "gyr_y", "gyr_z",
+    "acc_x",
+    "acc_y",
+    "acc_z",
+    "gyr_x",
+    "gyr_y",
+    "gyr_z",
 )
 
 # Labels

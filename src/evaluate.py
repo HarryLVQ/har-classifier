@@ -13,11 +13,11 @@ from . import config
 def main() -> None:
     """Print per-class metrics and save confusion matrix figure."""
     model = joblib.load(config.MODELS_DIR / "model.joblib")
-    data  = joblib.load(config.MODELS_DIR / "dataset.joblib")
+    data = joblib.load(config.MODELS_DIR / "dataset.joblib")
 
     y_pred = model.predict(data.X_test)
     labels = list(config.LABELS.keys())
-    names  = [config.LABELS[i] for i in labels]
+    names = [config.LABELS[i] for i in labels]
 
     print("=" * 50)
     print(classification_report(data.y_test, y_pred, target_names=names))
@@ -27,8 +27,13 @@ def main() -> None:
     cm = confusion_matrix(data.y_test, y_pred, labels=labels)
     fig, ax = plt.subplots(figsize=(5, 4))
     sns.heatmap(
-        cm, annot=True, fmt="d", cmap="Blues",
-        xticklabels=names, yticklabels=names, ax=ax,
+        cm,
+        annot=True,
+        fmt="d",
+        cmap="Blues",
+        xticklabels=names,
+        yticklabels=names,
+        ax=ax,
     )
     ax.set_xlabel("Predicted")
     ax.set_ylabel("True")
