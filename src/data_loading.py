@@ -4,6 +4,7 @@ Phyphox exports accelerometer and gyroscope data as separate CSV files.
 This module reads both, drops the pre-computed magnitude column, and
 resamples both sensors onto a shared uniform time grid.
 """
+
 from __future__ import annotations
 
 from pathlib import Path

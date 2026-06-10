@@ -5,11 +5,11 @@ Metrics reported:
     - Macro-averaged F1 (treats all classes equally regardless of size).
     - Confusion matrix saved as a figure in reports/figures/.
 """
+
 from __future__ import annotations
 
 import joblib
 import matplotlib.pyplot as plt
-import numpy as np
 import seaborn as sns
 from sklearn.metrics import (
     classification_report,
@@ -23,17 +23,15 @@ from . import config
 def main() -> None:
     """Load model + dataset, evaluate on test set, save confusion matrix."""
     model = joblib.load(config.MODELS_DIR / "model.joblib")
-    data  = joblib.load(config.MODELS_DIR / "dataset.joblib")
+    data = joblib.load(config.MODELS_DIR / "dataset.joblib")
 
     y_pred = model.predict(data.X_test)
     labels = list(config.LABELS.keys())
-    names  = [config.LABELS[i] for i in labels]
+    names = [config.LABELS[i] for i in labels]
 
     # --- Console report ---
     print("=" * 50)
-    print(classification_report(
-        data.y_test, y_pred, target_names=names
-    ))
+    print(classification_report(data.y_test, y_pred, target_names=names))
     macro_f1 = f1_score(data.y_test, y_pred, average="macro")
     print(f"Macro F1 : {macro_f1:.3f}")
     print("=" * 50)

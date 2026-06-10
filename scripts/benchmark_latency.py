@@ -8,6 +8,7 @@ Real-time constraint:
 This script measures the average latency over 1000 runs and reports
 the real-time headroom (budget / latency).
 """
+
 from __future__ import annotations
 
 import sys
@@ -26,7 +27,7 @@ from src import config
 
 def main() -> None:
     """Benchmark ONNX inference latency on CPU."""
-    sess       = ort.InferenceSession(str(config.MODELS_DIR / "model.onnx"))
+    sess = ort.InferenceSession(str(config.MODELS_DIR / "model.onnx"))
     input_name = sess.get_inputs()[0].name
     n_features = sess.get_inputs()[0].shape[1]
 
@@ -46,12 +47,14 @@ def main() -> None:
         sess.run(None, {input_name: dummy})
     elapsed = time.perf_counter() - start
 
-    mean_ms  = elapsed / n_runs * 1000
-    hop_ms   = config.WINDOW_STEP / config.SAMPLING_RATE_HZ * 1000
+    mean_ms = elapsed / n_runs * 1000
+    hop_ms = config.WINDOW_STEP / config.SAMPLING_RATE_HZ * 1000
     headroom = hop_ms / mean_ms
 
     print(f"Mean latency       : {mean_ms:.3f} ms / window")
-    print(f"Real-time budget   : {hop_ms:.0f} ms (= window hop at {config.SAMPLING_RATE_HZ} Hz)")
+    print(
+        f"Real-time budget   : {hop_ms:.0f} ms (= window hop at {config.SAMPLING_RATE_HZ} Hz)"
+    )
     print(f"Real-time headroom : {headroom:.0f}x")
     print()
     if headroom >= 10:

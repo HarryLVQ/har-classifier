@@ -10,6 +10,7 @@ Steps:
     3. Verify that ONNX predictions match sklearn predictions exactly.
     4. Save the .onnx file to models/.
 """
+
 from __future__ import annotations
 
 import joblib
@@ -23,7 +24,7 @@ from . import config
 def main() -> None:
     """Export model to ONNX and verify correctness."""
     model = joblib.load(config.MODELS_DIR / "model.joblib")
-    data  = joblib.load(config.MODELS_DIR / "dataset.joblib")
+    data = joblib.load(config.MODELS_DIR / "dataset.joblib")
 
     # skl2onnx needs one sample to infer the input shape and dtype.
     sample = data.X_train[:1].astype(np.float32)
@@ -38,13 +39,11 @@ def main() -> None:
 
     # --- Sanity check : sklearn vs ONNX must agree on every prediction ---
     print("\nVerifying ONNX predictions match sklearn...")
-    sess       = ort.InferenceSession(str(onnx_path))
+    sess = ort.InferenceSession(str(onnx_path))
     input_name = sess.get_inputs()[0].name
 
-    onnx_pred = sess.run(
-        None, {input_name: data.X_test.astype(np.float32)}
-    )[0]
-    skl_pred  = model.predict(data.X_test)
+    onnx_pred = sess.run(None, {input_name: data.X_test.astype(np.float32)})[0]
+    skl_pred = model.predict(data.X_test)
 
     agreement = float(np.mean(onnx_pred.ravel() == skl_pred))
     print(f"Agreement sklearn vs ONNX : {agreement:.4f}")

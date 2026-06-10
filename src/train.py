@@ -8,6 +8,7 @@ Model choice — Random Forest:
       'falling' class without manual oversampling.
     - Feature importances available for free (useful for analysis).
 """
+
 from __future__ import annotations
 
 import joblib
@@ -58,7 +59,7 @@ def main() -> None:
     # Persist model and dataset for downstream scripts.
     config.MODELS_DIR.mkdir(parents=True, exist_ok=True)
     joblib.dump(model, config.MODELS_DIR / "model.joblib")
-    joblib.dump(data,  config.MODELS_DIR / "dataset.joblib")
+    joblib.dump(data, config.MODELS_DIR / "dataset.joblib")
     print(f"Model saved → {config.MODELS_DIR / 'model.joblib'}")
 
 

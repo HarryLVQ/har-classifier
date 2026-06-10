@@ -5,6 +5,7 @@ to human motion recognition. We apply a low-pass filter to remove it,
 then segment the cleaned signal into fixed-size overlapping windows
 ready for feature extraction.
 """
+
 from __future__ import annotations
 
 import numpy as np

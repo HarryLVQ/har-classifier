@@ -16,6 +16,7 @@ SPLIT STRATEGY:
         next 20%   → val
         last 20%   → test
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -38,23 +39,23 @@ class Dataset:
         X_test:  Feature matrix for test (used ONCE at the very end).
         y_test:  Label vector for test.
     """
+
     X_train: np.ndarray
     y_train: np.ndarray
-    X_val:   np.ndarray
-    y_val:   np.ndarray
-    X_test:  np.ndarray
-    y_test:  np.ndarray
+    X_val: np.ndarray
+    y_val: np.ndarray
+    X_test: np.ndarray
+    y_test: np.ndarray
 
     def summary(self) -> None:
         """Print a quick overview of split sizes and class distribution."""
         for name, X, y in [
             ("train", self.X_train, self.y_train),
-            ("val",   self.X_val,   self.y_val),
-            ("test",  self.X_test,  self.y_test),
+            ("val", self.X_val, self.y_val),
+            ("test", self.X_test, self.y_test),
         ]:
             counts = {
-                config.LABELS[i]: int(np.sum(y == i))
-                for i in sorted(config.LABELS)
+                config.LABELS[i]: int(np.sum(y == i)) for i in sorted(config.LABELS)
             }
             print(f"{name:5s} → {len(y):4d} windows | {counts}")
 
@@ -101,13 +102,13 @@ def _split_single_session(
         Three (X, y) tuples for train, val, and test.
     """
     n = len(X)
-    i_val  = int(n * train_ratio)
+    i_val = int(n * train_ratio)
     i_test = int(n * (train_ratio + val_ratio))
 
     return (
-        (X[:i_val],        y[:i_val]),
-        (X[i_val:i_test],  y[i_val:i_test]),
-        (X[i_test:],       y[i_test:]),
+        (X[:i_val], y[:i_val]),
+        (X[i_val:i_test], y[i_val:i_test]),
+        (X[i_test:], y[i_test:]),
     )
 
 
@@ -126,7 +127,9 @@ def build_dataset(raw_dir: Path = config.RAW_DATA_DIR) -> Dataset:
     rng = np.random.default_rng(config.RANDOM_SEED)
 
     parts: dict[str, list[tuple[np.ndarray, np.ndarray]]] = {
-        "train": [], "val": [], "test": [],
+        "train": [],
+        "val": [],
+        "test": [],
     }
 
     for label_id, name in config.LABELS.items():
@@ -140,9 +143,7 @@ def build_dataset(raw_dir: Path = config.RAW_DATA_DIR) -> Dataset:
         if len(sessions) == 1:
             # Only one session (e.g. falling) → contiguous block split.
             acc_path = sessions[0]
-            gyr_path = acc_path.with_name(
-                acc_path.name.replace("_acc", "_gyr")
-            )
+            gyr_path = acc_path.with_name(acc_path.name.replace("_acc", "_gyr"))
             X = _process_session(acc_path, gyr_path)
             y = np.full(len(X), label_id)
             (Xtr, ytr), (Xv, yv), (Xte, yte) = _split_single_session(X, y)
@@ -154,9 +155,7 @@ def build_dataset(raw_dir: Path = config.RAW_DATA_DIR) -> Dataset:
             # Multiple sessions → last = test, second-to-last = val,
             # the rest = train.
             for i, acc_path in enumerate(sessions):
-                gyr_path = acc_path.with_name(
-                    acc_path.name.replace("_acc", "_gyr")
-                )
+                gyr_path = acc_path.with_name(acc_path.name.replace("_acc", "_gyr"))
                 X = _process_session(acc_path, gyr_path)
                 y = np.full(len(X), label_id)
 
@@ -179,7 +178,7 @@ def build_dataset(raw_dir: Path = config.RAW_DATA_DIR) -> Dataset:
         return Xs[idx], ys[idx]
 
     X_train, y_train = stack_and_shuffle("train")
-    X_val,   y_val   = stack_and_shuffle("val")
-    X_test,  y_test  = stack_and_shuffle("test")
+    X_val, y_val = stack_and_shuffle("val")
+    X_test, y_test = stack_and_shuffle("test")
 
     return Dataset(X_train, y_train, X_val, y_val, X_test, y_test)

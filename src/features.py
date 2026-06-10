@@ -12,6 +12,7 @@ Feature families:
 - Acceleration magnitude : orientation-invariant norm of the 3-axis
   accelerometer, robust to phone placement variation.
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -31,18 +32,18 @@ def _time_features(x: np.ndarray) -> dict[str, float]:
         Dictionary mapping feature name to scalar value.
     """
     return {
-        "mean":     float(np.mean(x)),
-        "std":      float(np.std(x)),
-        "min":      float(np.min(x)),
-        "max":      float(np.max(x)),
-        "median":   float(np.median(x)),
-        "rms":      float(np.sqrt(np.mean(x ** 2))),
-        "mad":      float(np.median(np.abs(x - np.median(x)))),
-        "iqr":      float(np.percentile(x, 75) - np.percentile(x, 25)),
-        "skew":     float(stats.skew(x)),
+        "mean": float(np.mean(x)),
+        "std": float(np.std(x)),
+        "min": float(np.min(x)),
+        "max": float(np.max(x)),
+        "median": float(np.median(x)),
+        "rms": float(np.sqrt(np.mean(x**2))),
+        "mad": float(np.median(np.abs(x - np.median(x)))),
+        "iqr": float(np.percentile(x, 75) - np.percentile(x, 25)),
+        "skew": float(stats.skew(x)),
         "kurtosis": float(stats.kurtosis(x)),
-        "energy":   float(np.sum(x ** 2) / len(x)),
-        "zcr":      float(np.mean(np.abs(np.diff(np.sign(x))) > 0)),
+        "energy": float(np.sum(x**2) / len(x)),
+        "zcr": float(np.mean(np.abs(np.diff(np.sign(x))) > 0)),
     }
 
 
@@ -57,13 +58,13 @@ def _freq_features(x: np.ndarray, fs: int) -> dict[str, float]:
         Dictionary mapping feature name to scalar value.
     """
     spectrum = np.abs(rfft(x))
-    freqs    = rfftfreq(len(x), d=1.0 / fs)
-    power    = spectrum ** 2
-    total    = float(np.sum(power)) + 1e-12
-    norm     = power / total
+    freqs = rfftfreq(len(x), d=1.0 / fs)
+    power = spectrum**2
+    total = float(np.sum(power)) + 1e-12
+    norm = power / total
 
     return {
-        "dom_freq":    float(freqs[int(np.argmax(spectrum))]),
+        "dom_freq": float(freqs[int(np.argmax(spectrum))]),
         "spec_energy": total,
         "spec_entropy": float(-np.sum(norm * np.log2(norm + 1e-12))),
     }
