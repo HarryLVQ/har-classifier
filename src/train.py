@@ -1,12 +1,10 @@
-"""Train the HAR classifier and persist it to disk.
+"""Train and save the HAR Random Forest classifier.
 
-Model choice — Random Forest:
-    - No feature scaling required (tree-based model).
-    - Fast training and inference, small serialized size.
-    - Naturally handles mixed-scale features.
-    - ``class_weight='balanced'`` compensates for the under-represented
-      'falling' class without manual oversampling.
-    - Feature importances available for free (useful for analysis).
+Random Forest was chosen over deep learning for a few practical reasons:
+the dataset is small (~700 windows), no feature scaling is needed,
+inference is fast, and the serialized model stays lightweight.
+class_weight='balanced' handles the under-represented falling class
+without manual oversampling.
 """
 
 from __future__ import annotations
@@ -18,19 +16,10 @@ from . import config, dataset
 
 
 def build_model() -> RandomForestClassifier:
-    """Instantiate the Random Forest classifier.
+    """Return a configured (untrained) Random Forest.
 
-    Hyperparameter choices:
-        n_estimators=100  : enough trees for stable predictions while
-                            keeping the model lightweight.
-        max_depth=12      : limits tree size → faster inference, less
-                            overfitting on the small dataset.
-        min_samples_leaf=3: avoids memorising individual noisy windows.
-        class_weight='balanced': up-weights rare classes (falling)
-                            so the model doesn't ignore them.
-
-    Returns:
-        Untrained RandomForestClassifier instance.
+    max_depth=12 and min_samples_leaf=3 prevent overfitting on
+    the small dataset while keeping inference fast.
     """
     return RandomForestClassifier(
         n_estimators=100,
@@ -43,7 +32,7 @@ def build_model() -> RandomForestClassifier:
 
 
 def main() -> None:
-    """Build dataset, train model, and save to disk."""
+    """Build dataset, train, and persist model + dataset to disk."""
     print("Building dataset...")
     data = dataset.build_dataset()
     data.summary()
@@ -52,14 +41,12 @@ def main() -> None:
     model = build_model()
     model.fit(data.X_train, data.y_train)
 
-    # Quick validation check (never used for final reporting).
     val_acc = model.score(data.X_val, data.y_val)
     print(f"\nValidation accuracy : {val_acc:.3f}")
 
-    # Persist model and dataset for downstream scripts.
     config.MODELS_DIR.mkdir(parents=True, exist_ok=True)
     joblib.dump(model, config.MODELS_DIR / "model.joblib")
-    joblib.dump(data, config.MODELS_DIR / "dataset.joblib")
+    joblib.dump(data,  config.MODELS_DIR / "dataset.joblib")
     print(f"Model saved → {config.MODELS_DIR / 'model.joblib'}")
 
 

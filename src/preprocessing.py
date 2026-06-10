@@ -1,10 +1,4 @@
-"""Signal cleaning, denoising, and sliding-window segmentation.
-
-Raw IMU signals contain high-frequency sensor noise that is irrelevant
-to human motion recognition. We apply a low-pass filter to remove it,
-then segment the cleaned signal into fixed-size overlapping windows
-ready for feature extraction.
-"""
+"""Signal cleaning and sliding-window segmentation for IMU data."""
 
 from __future__ import annotations
 
@@ -16,11 +10,7 @@ from . import config
 
 
 def fill_missing(df: pd.DataFrame) -> pd.DataFrame:
-    """Linearly interpolate missing values, then fill remaining edges.
-
-    IMU streams occasionally drop samples. Linear interpolation keeps
-    the signal continuous without introducing artificial jumps. Edge
-    gaps (start/end) are filled with the nearest valid value.
+    """Interpolate missing samples, then fill any remaining edge gaps.
 
     Args:
         df: Raw session DataFrame.
@@ -37,18 +27,17 @@ def lowpass_filter(
     fs: int = config.SAMPLING_RATE_HZ,
     order: int = 4,
 ) -> np.ndarray:
-    """Apply a zero-phase Butterworth low-pass filter.
+    """Zero-phase Butterworth low-pass filter for one sensor channel.
 
-    Human motion energy lies below ~15-20 Hz. A 20 Hz cutoff removes
-    high-frequency sensor noise while preserving all motion-relevant
-    content. ``filtfilt`` applies the filter twice (forward + backward)
-    for zero phase shift — no time distortion.
+    Human motion sits below ~15-20 Hz, so a 20 Hz cutoff removes
+    sensor noise without touching the actual movement signal.
+    filtfilt runs forward + backward to avoid any phase shift.
 
     Args:
-        signal: 1-D array representing one sensor channel.
+        signal: 1-D array for one channel.
         cutoff_hz: Cutoff frequency in Hz.
         fs: Sampling rate in Hz.
-        order: Filter order (higher = steeper roll-off).
+        order: Filter order.
 
     Returns:
         Filtered signal, same shape as input.
@@ -59,9 +48,7 @@ def lowpass_filter(
 
 
 def denoise(df: pd.DataFrame) -> pd.DataFrame:
-    """Apply low-pass filter to every sensor channel.
-
-    The 'time' column is left untouched.
+    """Apply low-pass filter to every sensor channel (time column untouched).
 
     Args:
         df: Session DataFrame with SENSOR_CHANNELS columns.
@@ -80,21 +67,16 @@ def sliding_windows(
     window_size: int = config.WINDOW_SIZE,
     step: int = config.WINDOW_STEP,
 ) -> np.ndarray:
-    """Cut a continuous recording into overlapping fixed-size windows.
+    """Segment a continuous recording into overlapping fixed-size windows.
 
-    Each window is a snapshot of all sensor channels over ``window_size``
-    samples. Consecutive windows overlap by (window_size - step) samples.
-
-    Example with window_size=200, step=100 (50% overlap):
-        window 1 → samples [0:200]
-        window 2 → samples [100:300]
-        window 3 → samples [200:400]
-        ...
+    With window_size=200 and step=100, consecutive windows overlap by
+    100 samples (50%). This doubles the number of training examples and
+    avoids cutting events across window boundaries.
 
     Args:
         df: Cleaned session DataFrame containing SENSOR_CHANNELS.
-        window_size: Number of samples per window (default: 200 = 2s).
-        step: Hop size between windows (default: 100 = 1s).
+        window_size: Samples per window (200 = 2s at 100 Hz).
+        step: Hop between windows (100 = 1s, i.e. 50% overlap).
 
     Returns:
         Array of shape (n_windows, window_size, n_channels).

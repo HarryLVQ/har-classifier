@@ -1,14 +1,7 @@
-"""Convert the trained sklearn model to ONNX format.
+"""Export the trained sklearn model to ONNX for portable inference.
 
-ONNX (Open Neural Network Exchange) is a portable model format that
-runs on any platform without requiring scikit-learn at inference time.
-This is the standard for on-device / embedded deployment.
-
-Steps:
-    1. Load the trained RandomForest from disk.
-    2. Convert to ONNX using skl2onnx.
-    3. Verify that ONNX predictions match sklearn predictions exactly.
-    4. Save the .onnx file to models/.
+ONNX removes the scikit-learn dependency at runtime, which matters
+for embedded targets where only onnxruntime is available.
 """
 
 from __future__ import annotations
@@ -22,11 +15,10 @@ from . import config
 
 
 def main() -> None:
-    """Export model to ONNX and verify correctness."""
+    """Convert to ONNX, save, and verify predictions match sklearn."""
     model = joblib.load(config.MODELS_DIR / "model.joblib")
-    data = joblib.load(config.MODELS_DIR / "dataset.joblib")
+    data  = joblib.load(config.MODELS_DIR / "dataset.joblib")
 
-    # skl2onnx needs one sample to infer the input shape and dtype.
     sample = data.X_train[:1].astype(np.float32)
 
     print("Converting to ONNX...")
@@ -37,13 +29,12 @@ def main() -> None:
     print(f"ONNX model saved → {onnx_path}")
     print(f"File size        : {onnx_path.stat().st_size / 1024:.1f} KB")
 
-    # --- Sanity check : sklearn vs ONNX must agree on every prediction ---
+    # Make sure ONNX and sklearn agree on every test prediction
     print("\nVerifying ONNX predictions match sklearn...")
-    sess = ort.InferenceSession(str(onnx_path))
+    sess       = ort.InferenceSession(str(onnx_path))
     input_name = sess.get_inputs()[0].name
-
-    onnx_pred = sess.run(None, {input_name: data.X_test.astype(np.float32)})[0]
-    skl_pred = model.predict(data.X_test)
+    onnx_pred  = sess.run(None, {input_name: data.X_test.astype(np.float32)})[0]
+    skl_pred   = model.predict(data.X_test)
 
     agreement = float(np.mean(onnx_pred.ravel() == skl_pred))
     print(f"Agreement sklearn vs ONNX : {agreement:.4f}")
