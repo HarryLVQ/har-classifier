@@ -5,15 +5,15 @@
 
 ## 1. Dataset Description
 
-IMU data was collected using the **Phyphox** app (RWTH Aachen) on a 
-personal smartphone (Samsung A54) placed in the front pants pocket.Both
-accelerometer and gyroscope were recorded as separate CSV files at
+IMU data was collected using the Phyphox app (RWTH Aachen) on a
+personal smartphone (Samsung A54) placed in the front pants pocket.
+Both accelerometer and gyroscope were recorded as separate CSV files at
 approximately 100 Hz, then merged in post-processing onto a shared
-uniform time grid.
+uniform time grid. 
 
-Recording conditions were kept consistent across sessions: same pocket,
-same walking/running route, same seated position. Falls were simulated
-as controlled forward and lateral drops onto a mattress.
+Recording conditions were kept consistent across
+sessions: same pocket, same walking/running route, same seated position.
+Falls were simulated as controlled forward and lateral drops onto a mattress.
 
 | Activity | Sessions | Total duration                      |
 |----------|----------|-------------------------------------|
@@ -34,7 +34,7 @@ sensors don't share the same time grid. Both signals are linearly
 interpolated onto a uniform 100 Hz grid before any further processing.
 
 **Noise filtering** : A zero-phase 4th-order Butterworth low-pass filter
-(cutoff: 20 Hz) is applied to each channel via `filtfilt` (forward +
+(cutoff: 20 Hz) is applied to each channel via filtfilt (forward +
 backward pass, no phase shift). Human motion energy lies below 15–20 Hz,
 so this removes sensor noise without affecting the motion signal.
 
@@ -44,14 +44,14 @@ for walking/running, and comfortably encompasses a fall (~1 s). The 50%
 overlap doubles the number of available windows and avoids cutting an
 event across two boundaries.
 
-**Features** : 105 features are extracted per window, 12 time-domain
+**Features** :  105 features are extracted per window, 12 time-domain
 statistics (mean, std, RMS, energy, kurtosis, zero-crossing rate, etc.)
 and 3 frequency-domain statistics (dominant frequency, spectral energy,
 spectral entropy) for each of the 6 sensor channels, plus the same 15
 features computed on the acceleration magnitude (orientation-invariant,
 robust to phone placement variation in the pocket).
 
-**Split strategy** : The split is done at the **session level**, not the
+**Split strategy** :  The split is done at the session level, not the
 window level. With 50% overlap, adjacent windows share 100 samples,
 a random window split would leak near-identical data into both train and
 test, artificially inflating accuracy. For the falling class (single
@@ -82,8 +82,11 @@ importances come for free.
 | `class_weight`     | balanced | Compensates for under-represented falling class |
 | `random_state`     | 42       | Reproducibility                                 |
 
-The validation set was used to confirm hyperparameter choices.
-The test set was used **once**, only for final reporting.
+
+The model takes 105 features as input (6 channels × 15 features + 15 on
+acceleration magnitude). The validation set was used to confirm
+hyperparameter choices. The test set was used once, only for final
+reporting.
 
 ---
 
