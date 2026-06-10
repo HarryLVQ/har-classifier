@@ -41,6 +41,7 @@ Built as a technical assessment for Reev — powered knee orthosis company.
 
 ## Project structure
 
+```
 har-classifier/
 ├── data/raw/              # Raw Phyphox CSV exports (one folder per activity)
 ├── models/                # Trained model (.joblib) and ONNX export (.onnx)
@@ -57,7 +58,7 @@ har-classifier/
 │   └── export_onnx.py     # ONNX conversion + verification
 └── scripts/
 └── benchmark_latency.py   # Inference latency benchmark
-
+```
 ---
 
 ## Setup
@@ -94,7 +95,7 @@ uv run python scripts/benchmark_latency.py
 ---
 
 ## Pipeline overview
-
+```
 data/raw/
 └── [activity]/sessionX_acc.csv + sessionX_gyr.csv
 │
@@ -118,7 +119,7 @@ evaluate.py           → accuracy, per-class F1, confusion matrix
 │
 ▼
 export_onnx.py        → model.onnx (40.4 KB) — real-time inference on CPU
-
+```
 ---
 
 ## Key design decisions
